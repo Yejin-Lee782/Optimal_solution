@@ -6,6 +6,11 @@
 [Bb]uilds/
 Assets/AssetStoreTools*
 
+# Unity Android 빌드 경로 관련 (긴 경로 에러 방지용)
+Library/Bee/
+*.apk
+*.aab
+
 # Visual Studio / Rider generated files
 [Ee]xported[Oo]bj/
 .vs/
