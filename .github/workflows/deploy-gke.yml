@@ -27,7 +27,10 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-latest 
-    
+
+    permissions:
+      id-token: write # OIDC 토큰 요청을 위한 권한
+      contents: read  # 코드 체크아웃을 위한 권한 (기본적으로 필요)
     
     environment: 
       name: ${{ github.event.inputs.environment || 'staging' }} 
