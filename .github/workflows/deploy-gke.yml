@@ -1,0 +1,106 @@
+name: Deploy to GKE
+
+on:
+  push:
+    branches:
+      - main 
+      - develop 
+
+
+  pull_request:
+    branches:
+      - main # PR이 main으로 merge될 때 (선택 사항, 보통 push에서 배포)
+
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+env:
+  GKE_PROJECT: ${{ secrets.GKE_PROJECT }}
+  GKE_CLUSTER: ${{ secrets.GKE_CLUSTER }}
+  GKE_ZONE: ${{ secrets.GKE_ZONE }}
+  GKE_APP_NAME: cloud-app
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest 
+    
+    
+    environment: 
+      name: ${{ github.event.inputs.environment || 'staging' }} 
+    
+    steps:
+     
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker BuildX
+        uses: docker/setup-buildx-action@v3
+
+      # GCP 인증
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          # Google Cloud에서 설정한 Workload Identity Provider의 전체 리소스 이름
+          # projects/317464749811/locations/global/workloadIdentityPools/armap/providers/GitHub-Actions-Provider
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          # 이 GitHub Actions 워크플로우가 사용할 GCP 서비스 계정 이메일
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}
+
+      # gcloud CLI 설치 및 프로젝트 설정
+      - name: Set up gcloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }} # 환경 비밀에서 프로젝트 ID 가져오기
+
+      # GKE 클러스터 자격 증명 가져오기
+      - name: Get GKE credentials
+        uses: google-github-actions/get-gke-credentials@v2
+        with:
+          cluster_name: ${{ secrets.GKE_CLUSTER_NAME }} # 환경 비밀에서 클러스터 이름 가져오기
+          location: ${{ secrets.GKE_CLUSTER_LOCATION }} # 환경 비밀에서 클러스터 위치 (리전/존) 가져오기
+          # project_id는 setup-gcloud에서 이미 설정되었으므로 여기서는 선택 사항
+
+      # Docker 이미지 빌드 및 Artifact Registry (또는 Container Registry)에 푸시
+      - name: Configure Docker to use Artifact Registry
+        run: gcloud auth configure-docker ${{ secrets.GCP_ARTIFACT_REGISTRY_LOCATION }}-docker.pkg.dev
+
+      - name: Build and push Docker image
+        env:
+          IMAGE_TAG: ${{ github.sha }} # Git 커밋 SHA를 이미지 태그로 사용
+        run: |
+          docker build -t ${{ secrets.GCP_ARTIFACT_REGISTRY_LOCATION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REGISTRY_REPO }}/${{ secrets.IMAGE_NAME }}:${{ env.IMAGE_TAG }} .
+          docker push ${{ secrets.GCP_ARTIFACT_REGISTRY_LOCATION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REGISTRY_REPO }}/${{ secrets.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+
+      # Kustomize 또는 Helm을 사용하여 Kubernetes 배포
+      # Kustomize 사용 예시
+      - name: Deploy to GKE using Kustomize
+        run: |
+          # Kustomize 설치 (필요시)
+          curl -sfLo kustomize https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv4.5.7/kustomize_v4.5.7_linux_amd64
+          chmod u+x kustomize
+          ./kustomize build kubernetes/overlays/${{ github.event.inputs.environment || 'staging' }} | kubectl apply -f -
+          kubectl rollout status deployment/${{ secrets.KUBERNETES_DEPLOYMENT_NAME }} -n ${{ secrets.KUBERNETES_NAMESPACE }}
+        env:
+          KUSTOMIZE_PATH: ./kubernetes/overlays/${{ github.event.inputs.environment || 'staging' }}
+        
+      # Helm 사용 예시 (Kustomize 대신)
+      # - name: Install Helm
+      #   uses: azure/setup-helm@v3
+      #   with:
+      #     version: 'v3.10.0' # 원하는 Helm 버전
+      # - name: Deploy to GKE using Helm
+      #   run: |
+      #     helm upgrade --install my-app ./charts/my-app \
+      #       --namespace ${{ secrets.KUBERNETES_NAMESPACE }} \
+      #       --set image.tag=${{ github.sha }} \
+      #       --set environment=${{ github.event.inputs.environment || 'staging' }} \
+      #       --set someSecret=${{ secrets.HELM_SECRET_VALUE }} \
+      #       --atomic --wait --timeout 5m
