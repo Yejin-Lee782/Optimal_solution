@@ -22,10 +22,7 @@ on:
           - staging
           - production
 env:
-  GKE_PROJECT: ${{ secrets.GKE_PROJECT }}
-  GKE_CLUSTER: ${{ secrets.GKE_CLUSTER }}
-  GKE_ZONE: ${{ secrets.GKE_ZONE }}
-  GKE_APP_NAME: cloud-app
+  APP_NAME: cloud-app
 
 jobs:
   deploy:
