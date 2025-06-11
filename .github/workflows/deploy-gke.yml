@@ -80,10 +80,12 @@ jobs:
           docker push ${{ secrets.GCP_ARTIFACT_REGISTRY_LOCATION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REGISTRY_REPO }}/${{ secrets.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
       - name: Deploy to GKE using Kustomize
         run: |
-          curl -sfLo kustomize https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv4.5.7/kustomize_v4.5.7_linux_amd64
-          chmod u+x kustomize
+          curl -sfLo kustomize.tar.gz https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/v4.5.7/kustomize_v4.5.7_linux_amd64.tar.gz
+          tar -xzf kustomize.tar.gz
+          chmod +x kustomize
           ./kustomize build kubernetes/overlays/${{ github.event.inputs.environment || 'staging' }} | kubectl apply -f -
           kubectl rollout status deployment/${{ secrets.KUBERNETES_DEPLOYMENT_NAME }} -n ${{ secrets.KUBERNETES_NAMESPACE }}
+
         env:
           KUSTOMIZE_PATH: ./kubernetes/overlays/${{ github.event.inputs.environment || 'staging' }}
 
