@@ -61,7 +61,6 @@ jobs:
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }} # 환경 비밀에서 프로젝트 ID 가져오기
 
-      # GKE 클러스터 자격 증명 가져오기
       - name: Get GKE credentials
         uses: google-github-actions/get-gke-credentials@v2
         with:
