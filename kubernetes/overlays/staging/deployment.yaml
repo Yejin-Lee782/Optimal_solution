@@ -15,6 +15,6 @@ spec:
     spec:
       containers:
         - name: cloud-app
-          image: asia-east1-docker.pkg.dev/YOUR_PROJECT/YOUR_REPO/YOUR_IMAGE:latest
+          image: asia-east1-docker.pkg.dev/indoornav-462516/hello-repo/cloud-app:latest
           ports:
             - containerPort: 3000
