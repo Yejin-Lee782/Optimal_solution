@@ -79,9 +79,6 @@ jobs:
         run: |
           docker build -t ${{ secrets.GCP_ARTIFACT_REGISTRY_LOCATION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REGISTRY_REPO }}/${{ secrets.IMAGE_NAME }}:${{ env.IMAGE_TAG }} .
           docker push ${{ secrets.GCP_ARTIFACT_REGISTRY_LOCATION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REGISTRY_REPO }}/${{ secrets.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
-
-      # Kustomize 또는 Helm을 사용하여 Kubernetes 배포
-      # Kustomize 사용 예시
       - name: Deploy to GKE using Kustomize
         run: |
           curl -sfLo kustomize https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv4.5.7/kustomize_v4.5.7_linux_amd64
