@@ -51,7 +51,8 @@ jobs:
           # Google Cloud에서 설정한 Workload Identity Provider의 전체 리소스 이름
           workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
           # 이 GitHub Actions 워크플로우가 사용할 GCP 서비스 계정 이메일
-          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}
+          #service_account: ${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}
+          service_account: '**projects/77876819245/locations/global/workloadIdentityPools/github-action**'
 
       # gcloud CLI 설치 및 프로젝트 설정
       - name: Set up gcloud CLI
