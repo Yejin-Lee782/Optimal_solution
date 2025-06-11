@@ -55,7 +55,7 @@ jobs:
           # 이 GitHub Actions 워크플로우가 사용할 GCP 서비스 계정 이메일
           service_account: ${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}
 
-      # gcloud CLI 설치 및 프로젝트 설정
+      
       - name: Set up gcloud CLI
         uses: google-github-actions/setup-gcloud@v2
         with:
