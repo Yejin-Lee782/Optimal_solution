@@ -9,7 +9,7 @@ on:
 
   pull_request:
     branches:
-      - main # PR이 main으로 merge될 때 (선택 사항, 보통 push에서 배포)
+      - main 
 
   workflow_dispatch:
     inputs:
