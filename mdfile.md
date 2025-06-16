@@ -2,7 +2,7 @@
 
 Text **bold** @wulfland #13 
 
-[] task1
+[ ] 공부
 [] task2
 [x] task3
 
