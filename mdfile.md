@@ -2,9 +2,8 @@
 
 Text **bold** @wulfland #13 
 
-[ ] 공부
-[] task2
-[x] task3
+- [ ] 할 일
+- [x] 완료된 일
 
 ``` function() {
       pass
